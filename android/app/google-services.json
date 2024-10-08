@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "590181084714",
+    "project_id": "digitalskill-96920",
+    "storage_bucket": "digitalskill-96920.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:590181084714:android:7f944618fc2221a8431d53",
+        "android_client_info": {
+          "package_name": "com.example.digitalskill"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyClN-p0zT0yVXPk3zuiN70xalPbjM2IK1Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
