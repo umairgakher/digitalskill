@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_const_constructors, sort_child_properties_last, use_key_in_widget_constructors, library_private_types_in_public_api, prefer_const_declarations
+// ignore_for_file: prefer_const_constructors, sort_child_properties_last, use_key_in_widget_constructors, library_private_types_in_public_api, prefer_const_declarations, prefer_interpolation_to_compose_strings, avoid_print
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -50,6 +50,7 @@ class _CoursesScreenlitingState extends State<CoursesScreenliting> {
         'logo_image': doc['logo_image'],
         'roadmap_image': doc['roadmap_image'],
         'url': doc['url'],
+        'type': doc['type'],
         'created_at': (doc['created_at'] as Timestamp)
             .toDate()
             .toString(), // Convert to String
@@ -66,6 +67,7 @@ class _CoursesScreenlitingState extends State<CoursesScreenliting> {
         'logo_image': doc['logo_image'],
         'roadmap_image': doc['roadmap_image'],
         'url': doc['url'],
+        'type': doc['type'],
         'created_at': (doc['created_at'] as Timestamp)
             .toDate()
             .toString(), // Convert to String

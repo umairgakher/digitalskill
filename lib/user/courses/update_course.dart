@@ -1,4 +1,5 @@
-// ignore_for_file: use_build_context_synchronously, prefer_const_constructors, use_key_in_widget_constructors, prefer_const_constructors_in_immutables, library_private_types_in_public_api, sort_child_properties_last, avoid_print
+// ignore_for_file: sort_child_properties_last, use_build_context_synchronously, use_key_in_widget_constructors, prefer_const_constructors_in_immutables, library_private_types_in_public_api, avoid_print
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -12,7 +13,7 @@ class UpdateCourseScreen extends StatefulWidget {
   final String courseId;
   final Map<String, dynamic> course;
 
-  UpdateCourseScreen({
+  const UpdateCourseScreen({
     required this.courseId,
     required this.course,
   });
@@ -28,14 +29,17 @@ class _UpdateCourseScreenState extends State<UpdateCourseScreen> {
   File? _selectedRoadmapImage;
   File? _selectedLogoImage;
   final ImagePicker _picker = ImagePicker();
-  late String? _selectedType;
+  String? _selectedType;
 
   final List<String> _courseTypes = ['Front-End', 'Back-End', 'Other'];
 
   @override
   void initState() {
     super.initState();
+    _initializeControllers();
+  }
 
+  void _initializeControllers() {
     // Initialize controllers with existing course data
     _urlController = TextEditingController(text: widget.course['url']);
     _nameController = TextEditingController(text: widget.course['name']);
@@ -59,7 +63,6 @@ class _UpdateCourseScreenState extends State<UpdateCourseScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Build Input Fields
             _buildInputField(
               controller: _nameController,
               label: 'Course Name',
@@ -93,6 +96,7 @@ class _UpdateCourseScreenState extends State<UpdateCourseScreen> {
               },
               width: width,
               height: height,
+              defaultImageUrl: widget.course['roadmap_image'],
             ),
             _buildImagePickerField(
               label: 'Logo Image',
@@ -104,6 +108,7 @@ class _UpdateCourseScreenState extends State<UpdateCourseScreen> {
               },
               width: width,
               height: height,
+              defaultImageUrl: widget.course['logo_image'],
             ),
             Center(
               child: ElevatedButton(
@@ -157,7 +162,7 @@ class _UpdateCourseScreenState extends State<UpdateCourseScreen> {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: height * 0.01),
       child: DropdownButtonFormField<String>(
-        value: _selectedType,
+        value: _selectedType, // This will reflect the current selected type
         decoration: InputDecoration(
           labelText: 'Course Type',
           border: OutlineInputBorder(
@@ -172,7 +177,7 @@ class _UpdateCourseScreenState extends State<UpdateCourseScreen> {
         }).toList(),
         onChanged: (value) {
           setState(() {
-            _selectedType = value;
+            _selectedType = value; // Update the selected type
           });
         },
       ),
@@ -185,6 +190,7 @@ class _UpdateCourseScreenState extends State<UpdateCourseScreen> {
     required void Function(File?) onImagePicked,
     required double width,
     required double height,
+    required String? defaultImageUrl,
   }) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: height * 0.01),
@@ -210,7 +216,9 @@ class _UpdateCourseScreenState extends State<UpdateCourseScreen> {
               ),
               child: imageFile != null
                   ? Image.file(imageFile, fit: BoxFit.cover)
-                  : Center(child: Text('Tap to select image')),
+                  : defaultImageUrl != null
+                      ? Image.network(defaultImageUrl, fit: BoxFit.cover)
+                      : Center(child: Text('Tap to select image')),
             ),
           ),
         ],
@@ -223,15 +231,12 @@ class _UpdateCourseScreenState extends State<UpdateCourseScreen> {
     final url = _urlController.text.trim();
     final description = _descriptionController.text.trim();
 
+    // Validate input fields
     if (name.isEmpty ||
         url.isEmpty ||
         description.isEmpty ||
         _selectedType == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Please fill all fields and select a course type.'),
-        ),
-      );
+      _showSnackbar('Please fill all fields and select a course type.');
       return;
     }
 
@@ -240,25 +245,25 @@ class _UpdateCourseScreenState extends State<UpdateCourseScreen> {
       String roadmapImageUrl = widget.course['roadmap_image'] ?? '';
       String logoImageUrl = widget.course['logo_image'] ?? '';
 
+      // Upload roadmap image if selected
       if (_selectedRoadmapImage != null) {
         final ref = FirebaseStorage.instance
             .ref()
-            .child('course_images')
-            .child('${widget.courseId}_roadmap.jpg');
+            .child('roadmap_images/${widget.courseId}.jpg');
         await ref.putFile(_selectedRoadmapImage!);
         roadmapImageUrl = await ref.getDownloadURL();
       }
 
+      // Upload logo image if selected
       if (_selectedLogoImage != null) {
         final ref = FirebaseStorage.instance
             .ref()
-            .child('course_images')
-            .child('${widget.courseId}_logo.jpg');
+            .child('logo_images/${widget.courseId}.jpg');
         await ref.putFile(_selectedLogoImage!);
         logoImageUrl = await ref.getDownloadURL();
       }
 
-      // Update course data in Firestore
+      // Update the course document
       await FirebaseFirestore.instance
           .collection('courses')
           .doc(widget.courseId)
@@ -271,20 +276,25 @@ class _UpdateCourseScreenState extends State<UpdateCourseScreen> {
         'logo_image': logoImageUrl,
       });
 
-      Navigator.pushReplacement(
-        context,
+      // Navigate to the CoursesScreen
+      Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (context) =>
-              CoursesScreen(), // Replace YourPreviousScreen with your actual previous screen
+          builder: (context) => CoursesScreen(),
         ),
       );
+
+      _showSnackbar('Course updated successfully!');
     } catch (e) {
-      print('Error updating course: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to update course. Please try again.'),
-        ),
-      );
+      print(e); // Optionally log the error
+      _showSnackbar('Failed to update course. Please try again.');
     }
+  }
+
+  void _showSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+      ),
+    );
   }
 }

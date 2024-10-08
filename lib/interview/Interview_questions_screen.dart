@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print, avoid_function_literals_in_foreach_calls, prefer_const_declarations, prefer_const_constructors, unnecessary_to_list_in_spreads, sort_child_properties_last, library_private_types_in_public_api, use_key_in_widget_constructors, file_names
+// ignore_for_file: avoid_print, avoid_function_literals_in_foreach_calls, prefer_const_declarations, prefer_const_constructors, unnecessary_to_list_in_spreads, sort_child_properties_last, library_private_types_in_public_api, use_key_in_widget_constructors, file_names, use_build_context_synchronously
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';

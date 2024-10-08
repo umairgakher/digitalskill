@@ -1,9 +1,9 @@
 // ignore_for_file: prefer_const_constructors, sized_box_for_whitespace, unused_import, use_key_in_widget_constructors, prefer_const_literals_to_create_immutables, unused_local_variable
 
 import 'package:flutter/material.dart';
-import '../../colors/color.dart';
-import '../../loginsignup/login.dart';
-import '../../loginsignup/signup.dart';
+import '../colors/color.dart';
+import '../loginsignup/login.dart';
+import '../loginsignup/signup.dart';
 
 class WelcomeScreen extends StatelessWidget {
   @override

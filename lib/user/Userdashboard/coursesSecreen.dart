@@ -55,6 +55,7 @@ class _CoursesScreenState extends State<CoursesScreen> {
         'logo_image': doc['logo_image'],
         'roadmap_image': doc['roadmap_image'],
         'url': doc['url'],
+        "type": doc['type'],
         'created_at':
             doc['created_at'].toDate(), // Convert timestamp to DateTime
       });
@@ -64,6 +65,7 @@ class _CoursesScreenState extends State<CoursesScreen> {
     for (var doc in backEndSnapshot.docs) {
       backEndCourses.add({
         'id': doc.id,
+        "type": doc['type'],
         'name': capitalize(doc['name']),
         'description': doc['description'],
         'logo_image': doc['logo_image'],

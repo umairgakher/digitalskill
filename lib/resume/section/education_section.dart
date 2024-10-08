@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_const_constructors, avoid_print, library_private_types_in_public_api, use_key_in_widget_constructors, use_build_context_synchronously
+// ignore_for_file: prefer_const_constructors, avoid_print, library_private_types_in_public_api, use_key_in_widget_constructors, use_build_context_synchronously, unnecessary_to_list_in_spreads
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 

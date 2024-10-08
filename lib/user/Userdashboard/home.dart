@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import '../../colors/color.dart';
 import '../../resume/cv_builder_screen.dart.dart';
 import '../courses/courses.dart';
-import '../resume/resumetamplate.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});

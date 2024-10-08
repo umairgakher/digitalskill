@@ -2,7 +2,7 @@
 // import 'package:digitalskill/firebase_options.dart';
 import 'package:flutter/material.dart';
 
-import 'user/secreens/spalchSecreen.dart';
+import 'secreens/spalchSecreen.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 void main() async {

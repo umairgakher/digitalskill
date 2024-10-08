@@ -25,6 +25,7 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
   String? _selectedType;
 
   final List<String> _courseTypes = ['Front-End', 'Back-End', 'Other'];
+  bool _isLoading = false; // to show loading spinner during form submission
 
   @override
   Widget build(BuildContext context) {
@@ -32,92 +33,97 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
       appBar: CustomAppBar(
         title: 'Add New Course',
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Course Name',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(height: 10),
-            _buildInputField(
-              controller: _nameController,
-              hintText: 'Enter course name',
-            ),
-            SizedBox(height: 20),
-            Text(
-              'Course URL',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(height: 10),
-            _buildInputField(
-              controller: _urlController,
-              hintText: 'Enter course URL',
-            ),
-            SizedBox(height: 20),
-            Text(
-              'Course Type',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(height: 10),
-            _buildDropdown(),
-            SizedBox(height: 20),
-            Text(
-              'Course Description',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(height: 10),
-            _buildInputField(
-              controller: _descriptionController,
-              hintText: 'Enter course description',
-              maxLines: 4,
-            ),
-            SizedBox(height: 20),
-            _buildImagePicker(
-              imageType: 'Roadmap Image',
-              selectedImage: _selectedRoadmapImage,
-              onPickImage: () => _pickImage('roadmap'),
-            ),
-            SizedBox(height: 20),
-            _buildImagePicker(
-              imageType: 'Course Logo Image',
-              selectedImage: _selectedLogoImage,
-              onPickImage: () => _pickImage('logo'),
-            ),
-            SizedBox(height: 20),
-            Center(
-              child: ElevatedButton(
-                onPressed: _submitForm,
-                child: Text(
-                  'Submit',
-                  style: TextStyle(color: Colors.white),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.backgroundColor,
-                  padding: EdgeInsets.symmetric(horizontal: 40, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
+      body: _isLoading
+          ? Center(
+              child: CircularProgressIndicator(),
+            )
+          : SingleChildScrollView(
+              padding: EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Course Name',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
+                  SizedBox(height: 10),
+                  _buildInputField(
+                    controller: _nameController,
+                    hintText: 'Enter course name',
+                  ),
+                  SizedBox(height: 20),
+                  Text(
+                    'Course URL',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  _buildInputField(
+                    controller: _urlController,
+                    hintText: 'Enter course URL',
+                  ),
+                  SizedBox(height: 20),
+                  Text(
+                    'Course Type',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  _buildDropdown(),
+                  SizedBox(height: 20),
+                  Text(
+                    'Course Description',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  _buildInputField(
+                    controller: _descriptionController,
+                    hintText: 'Enter course description',
+                    maxLines: 4,
+                  ),
+                  SizedBox(height: 20),
+                  _buildImagePicker(
+                    imageType: 'Roadmap Image',
+                    selectedImage: _selectedRoadmapImage,
+                    onPickImage: () => _pickImage('roadmap'),
+                  ),
+                  SizedBox(height: 20),
+                  _buildImagePicker(
+                    imageType: 'Course Logo Image',
+                    selectedImage: _selectedLogoImage,
+                    onPickImage: () => _pickImage('logo'),
+                  ),
+                  SizedBox(height: 20),
+                  Center(
+                    child: ElevatedButton(
+                      onPressed: _submitForm,
+                      child: Text(
+                        'Submit',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.backgroundColor,
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -268,14 +274,20 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
     if (name.isEmpty ||
         url.isEmpty ||
         description.isEmpty ||
-        _selectedType == null) {
+        _selectedType == null ||
+        _selectedRoadmapImage == null ||
+        _selectedLogoImage == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Please fill all fields and select a course type.'),
+          content: Text('Please fill all fields and upload all images.'),
         ),
       );
       return;
     }
+
+    setState(() {
+      _isLoading = true; // show loading spinner
+    });
 
     try {
       // Upload images to Firebase Storage and get the URLs
@@ -296,7 +308,7 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
         logoImageUrl = await logoImageRef.getDownloadURL();
       }
 
-      // Add course data to Firestore
+      // Save course data to Firestore
       await FirebaseFirestore.instance.collection('courses').add({
         'name': name,
         'url': url,
@@ -304,7 +316,7 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
         'description': description,
         'roadmap_image': roadmapImageUrl,
         'logo_image': logoImageUrl,
-        'created_at': Timestamp.now(),
+        'created_at': FieldValue.serverTimestamp(),
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -312,49 +324,21 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
           content: Text('Course added successfully!'),
         ),
       );
-
-      // Clear form
-      _nameController.clear();
-      _urlController.clear();
-      _descriptionController.clear();
-      setState(() {
-        _selectedRoadmapImage = null;
-        _selectedLogoImage = null;
-        _selectedType = null;
-      });
-
-      // Navigate to CoursesScreen
-      Navigator.of(context).pushReplacement(
+      Navigator.pushReplacement(
+        context,
         MaterialPageRoute(builder: (context) => CoursesScreen()),
       );
-    } catch (e) {
-      print(e);
+    } catch (error) {
+      print('Error saving course: $error');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to add course. Please try again.'),
+          content: Text('Error saving course. Please try again.'),
         ),
       );
     }
-  }
 
-  Future<String> _uploadImageToStorage({
-    required File file,
-    required String storagePath,
-  }) async {
-    try {
-      // Create a reference to Firebase Storage
-      final ref = FirebaseStorage.instance.ref().child(storagePath);
-
-      // Upload the file to Firebase Storage
-      await ref.putFile(file);
-
-      // Get the download URL
-      final downloadUrl = await ref.getDownloadURL();
-
-      return downloadUrl;
-    } catch (e) {
-      print(e);
-      throw 'Failed to upload image';
-    }
+    setState(() {
+      _isLoading = false; // hide loading spinner
+    });
   }
 }
