@@ -70,7 +70,7 @@ class _UserInterviewsPageState extends State<UserInterviewsPage> {
       status = await Permission.microphone.request();
       if (!status.isGranted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content:
                 Text('Microphone permission is required to use speech input.'),
           ),
@@ -114,29 +114,27 @@ class _UserInterviewsPageState extends State<UserInterviewsPage> {
 
     return Scaffold(
       appBar: CustomAppBar(
-        title: _capitalizeWords(widget.interview['course_name']) + " Interview",
+        title: "${_capitalizeWords(widget.interview['course_name'])} Interview",
       ),
       body: SingleChildScrollView(
         child: Padding(
           padding: EdgeInsets.all(screenWidth * 0.04),
-          child: Container(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildTimer(screenWidth),
-                SizedBox(height: screenHeight * 0.02),
-                _buildQuestionCounter(screenWidth),
-                SizedBox(height: screenHeight * 0.02),
-                _buildQuestionText(screenWidth),
-                SizedBox(height: screenHeight * 0.02),
-                ..._buildAnswerOptions(screenWidth),
-                SizedBox(height: screenHeight * 0.02),
-                _buildAnswerField(screenWidth, screenHeight),
-                if (_voiceInput.isNotEmpty) _buildVoiceInputText(screenWidth),
-                SizedBox(height: screenHeight * 0.02),
-                _buildNavigationButtons(screenWidth),
-              ],
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildTimer(screenWidth),
+              SizedBox(height: screenHeight * 0.02),
+              _buildQuestionCounter(screenWidth),
+              SizedBox(height: screenHeight * 0.02),
+              _buildQuestionText(screenWidth),
+              SizedBox(height: screenHeight * 0.02),
+              ..._buildAnswerOptions(screenWidth),
+              SizedBox(height: screenHeight * 0.02),
+              _buildAnswerField(screenWidth, screenHeight),
+              if (_voiceInput.isNotEmpty) _buildVoiceInputText(screenWidth),
+              SizedBox(height: screenHeight * 0.02),
+              _buildNavigationButtons(screenWidth),
+            ],
           ),
         ),
       ),
@@ -167,7 +165,7 @@ class _UserInterviewsPageState extends State<UserInterviewsPage> {
 
   Widget _buildQuestionText(double screenWidth) {
     return Text(
-      questions[currentQuestionIndex]['question'] + " ?",
+      "${questions[currentQuestionIndex]['question']} ?",
       style: TextStyle(fontSize: screenWidth * 0.045),
     );
   }
@@ -249,16 +247,16 @@ class _UserInterviewsPageState extends State<UserInterviewsPage> {
     );
   }
 
-  Widget _buildVoiceInputText(double screenWidth) {
-    return Text(
-      'Voice Input: $_voiceInput',
-      style: TextStyle(
-        fontSize: screenWidth * 0.045,
-        fontStyle: FontStyle.italic,
-        color: Colors.grey[600],
-      ),
-    );
-  }
+  // Widget _buildVoiceInputText(double screenWidth) {
+  //   return Text(
+  //     'Voice Input: $_voiceInput',
+  //     style: TextStyle(
+  //       fontSize: screenWidth * 0.045,
+  //       fontStyle: FontStyle.italic,
+  //       color: Colors.grey[600],
+  //     ),
+  //   );
+  // }
 
   Widget _buildNavigationButtons(double screenWidth) {
     return SizedBox(
@@ -271,192 +269,84 @@ class _UserInterviewsPageState extends State<UserInterviewsPage> {
         ),
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.backgroundColor,
-          padding: EdgeInsets.symmetric(
-              vertical: screenWidth *
-                  0.04), // Adjust vertical padding for button height
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(screenWidth * 0.08),
+          ),
+          padding: EdgeInsets.symmetric(vertical: screenWidth * 0.04),
         ),
       ),
     );
   }
 
-  // Refactor speech recognition methods for better clarity
-  void _listen() async {
-    if (!_isListening) {
-      // Check microphone permission before initializing speech recognition
-      PermissionStatus status = await Permission.microphone.status;
-      if (!status.isGranted) {
-        status = await Permission.microphone.request();
-        if (!status.isGranted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                  'Microphone permission is required to use speech input.'),
-            ),
-          );
-          return;
+  void _submitAnswer() {
+    _timer?.cancel(); // Stop the timer when the answer is submitted
+    setState(() {
+      String selectedAnswer = _answerController.text.trim();
+      if (selectedAnswer.isNotEmpty) {
+        String correctAnswer =
+            questions[currentQuestionIndex]['correct_answer'];
+        if (selectedAnswer == correctAnswer) {
+          correctAnswersCount++;
         }
       }
 
-      bool available = await _speech.initialize(
-        onStatus: (val) {
-          print('onStatus: $val');
-          if (val == 'done' || val == 'notListening') {
-            _stopListening(); // Automatically stop when done
-          }
-        },
-        onError: (val) {
-          print('onError: $val');
-          setState(() {
-            _isListening = false;
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Speech recognition error: $val'),
-            ),
-          );
-        },
-      );
+      // Go to the next question
+      if (currentQuestionIndex < questions.length - 1) {
+        currentQuestionIndex++;
+        _answerController.clear();
+        _voiceInput = '';
+        _startTimer(); // Reset the timer for the new question
+      } else {
+        _showResultDialog();
+      }
+    });
+  }
 
+  void _listen() async {
+    if (!_isListening) {
+      bool available = await _speech.initialize();
       if (available) {
         setState(() => _isListening = true);
-        _speech.listen(
-          onResult: (val) {
-            setState(() {
-              _voiceInput = val.recognizedWords;
-              _answerController.text = _voiceInput;
-            });
-          },
-          listenFor: Duration(seconds: 30),
-          localeId: 'en_US',
-          cancelOnError: true,
-          partialResults: true, // Enable partial results for real-time feedback
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content:
-                Text('Speech recognition is not available on this device.'),
-          ),
-        );
+        _speech.listen(onResult: (val) {
+          setState(() {
+            _voiceInput = val.recognizedWords;
+            _answerController.text = _voiceInput;
+          });
+        });
       }
     } else {
-      _stopListening();
+      setState(() => _isListening = false);
+      _speech.stop();
     }
   }
-
-  void _stopListening() {
-    setState(() {
-      _isListening = false;
-    });
-    _speech.stop();
-  }
-
-  void _submitAnswer() {
-    String userAnswer = _answerController.text.trim().toLowerCase();
-    String correctAnswer =
-        questions[currentQuestionIndex]['correct_answer'].toLowerCase();
-
-    if (userAnswer == correctAnswer) {
-      correctAnswersCount++;
-    }
-
-    if (currentQuestionIndex < questions.length - 1) {
-      setState(() {
-        currentQuestionIndex++;
-        _startTimer(); // Restart the timer for the next question
-      });
-    } else {
-      // Show result after finishing the last question
-      _timer?.cancel();
-      _showResultDialog();
-    }
-
-    _answerController.clear();
-    _voiceInput = ''; // Clear voice input after submission
-  }
-
-  // Removed _prevQuestion() since the "Prev" button is no longer used
 
   void _showResultDialog() {
-    int totalQuestions = questions.length;
-    double percentage = (correctAnswersCount / totalQuestions) * 100;
-    String resultMessage;
-    Icon resultIcon;
-
-    if (percentage >= 80) {
-      // Excellent performance
-      resultMessage = "Excellent job! You've mastered the material!";
-      resultIcon = const Icon(ZondIcons.trophy, color: Colors.orange, size: 60);
-    } else if (percentage >= 50) {
-      // Good performance
-      resultMessage = "Good job! Keep practicing and you'll improve!";
-      resultIcon = const Icon(Icons.thumb_up, color: Colors.orange, size: 60);
-    } else {
-      // Needs improvement
-      resultMessage = "Don't worry, keep practicing, and you'll get better!";
-      resultIcon =
-          const Icon(Icons.sentiment_neutral, color: Colors.orange, size: 60);
-    }
-
     showDialog(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Interview Result'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              resultIcon, // Display the appropriate icon
-              const SizedBox(
-                  height: 16), // Add some space between the icon and text
-              Text(
-                'Percentage: ${percentage.toStringAsFixed(2)}%',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: percentage >= 50 ? Colors.green : Colors.red,
-                ),
-              ),
-              Text(
-                resultMessage,
-                style:
-                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16), // Add space before showing the score
-              Text(
-                'Correct answers: $correctAnswersCount out of $totalQuestions',
-                style: const TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 8),
-            ],
+      builder: (context) => AlertDialog(
+        title: const Text('Interview Complete'),
+        content: Text(
+          'You answered $correctAnswersCount out of ${questions.length} correctly.',
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.pop(context); // Return to the previous screen
+            },
+            child: const Text('OK'),
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
-                Navigator.of(context).pop(); // Go back to the previous screen
-              },
-              child: const Text('OK'),
-            ),
-            IconButton(
-              icon: Icon(Icons.share, color: Colors.grey),
-              onPressed: () {
-                Share.share(
-                    'I scored ${percentage.toStringAsFixed(2)}% in the quiz with $correctAnswersCount out of $totalQuestions correct answers!');
-              },
-            ),
-          ],
-        );
-      },
+        ],
+      ),
     );
   }
 
-  // Helper method to capitalize each word in a string
-  String _capitalizeWords(String str) {
-    return str
-        .split(' ')
-        .map((word) =>
-            word.isNotEmpty ? word[0].toUpperCase() + word.substring(1) : '')
-        .join(' ');
+  String _capitalizeWords(String text) {
+    return text.split(' ').map((word) {
+      if (word.isNotEmpty) {
+        return word[0].toUpperCase() + word.substring(1).toLowerCase();
+      }
+      return word;
+    }).join(' ');
   }
 }
