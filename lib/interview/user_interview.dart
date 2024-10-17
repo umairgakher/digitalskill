@@ -297,7 +297,7 @@ class _UserInterviewsPageState extends State<UserInterviewsPage> {
         _voiceInput = '';
         _startTimer(); // Reset the timer for the new question
       } else {
-        _showResultDialog();
+        _showResult();
       }
     });
   }
@@ -320,24 +320,61 @@ class _UserInterviewsPageState extends State<UserInterviewsPage> {
     }
   }
 
-  void _showResultDialog() {
+  void _showResult() {
+    String message;
+    Icon resultIcon;
+    double percentage = (correctAnswersCount / questions.length) *
+        100; // Calculate the percentage
+
+    // Define score thresholds and corresponding messages/icons
+    if (correctAnswersCount >= (questions.length * 0.75)) {
+      // 75% or more
+      message =
+          'Congratulations! You scored $correctAnswersCount out of ${questions.length}. Great job!';
+      resultIcon =
+          Icon(Icons.sentiment_very_satisfied, color: Colors.yellow, size: 100);
+    } else if (correctAnswersCount >= (questions.length * 0.5)) {
+      // 50% to 74%
+      message =
+          'Good effort! You scored $correctAnswersCount out of ${questions.length}. Keep practicing!';
+      resultIcon =
+          Icon(Icons.sentiment_satisfied, color: Colors.orange, size: 100);
+    } else {
+      // Below 50%
+      message =
+          'You scored $correctAnswersCount out of ${questions.length}. Don’t give up! Try again!';
+      resultIcon =
+          Icon(Icons.sentiment_dissatisfied, color: Colors.red, size: 100);
+    }
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Interview Complete'),
-        content: Text(
-          'You answered $correctAnswersCount out of ${questions.length} correctly.',
-        ),
-        actions: [
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.pop(context); // Return to the previous screen
-            },
-            child: const Text('OK'),
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Interview Result'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              resultIcon,
+              SizedBox(height: 20), // Add spacing between icon and message
+              Text(
+                  'Your score percentage is: ${percentage.toStringAsFixed(1)}%',
+                  textAlign: TextAlign.center), // Display the percentage
+              SizedBox(height: 20), // Add spacing between icon and message
+              Text(message, textAlign: TextAlign.center),
+            ],
           ),
-        ],
-      ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+                Navigator.of(context).pop(); // Go back to the previous screen
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
     );
   }
 
