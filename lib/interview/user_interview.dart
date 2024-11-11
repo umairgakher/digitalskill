@@ -50,11 +50,14 @@ class _UserInterviewsPageState extends State<UserInterviewsPage> {
     super.dispose();
   }
 
-  void _initializeInterview() {
-    // Initialize questions list
+ void _initializeInterview() {
+    // Initialize questions list and shuffle for a unique pattern each time
     if (widget.interview['questions_and_answers'] != null) {
       questions = List<Map<String, dynamic>>.from(
           widget.interview['questions_and_answers']);
+
+      questions.shuffle();
+      // Shuffle the questions list for random order
     } else {
       print("No questions available.");
     }
