@@ -23,6 +23,8 @@ class UserInterviewsPage extends StatefulWidget {
 }
 
 class _UserInterviewsPageState extends State<UserInterviewsPage> {
+  
+  List<Map<String, dynamic>> userResponses = [];
   int currentQuestionIndex = 0;
   int correctAnswersCount = 0;
   List<Map<String, dynamic>> questions = [];
@@ -285,12 +287,17 @@ class _UserInterviewsPageState extends State<UserInterviewsPage> {
     _timer?.cancel(); // Stop the timer when the answer is submitted
     setState(() {
       String selectedAnswer = _answerController.text.trim();
-      if (selectedAnswer.isNotEmpty) {
-        String correctAnswer =
-            questions[currentQuestionIndex]['correct_answer'];
-        if (selectedAnswer == correctAnswer) {
-          correctAnswersCount++;
-        }
+      String correctAnswer = questions[currentQuestionIndex]['correct_answer'];
+
+      userResponses.add({
+        'question': questions[currentQuestionIndex]['question'],
+        'user_answer': selectedAnswer,
+        'correct_answer': correctAnswer,
+        'is_correct': selectedAnswer == correctAnswer,
+      });
+
+      if (selectedAnswer == correctAnswer) {
+        correctAnswersCount++;
       }
 
       // Go to the next question
@@ -373,7 +380,28 @@ class _UserInterviewsPageState extends State<UserInterviewsPage> {
                 Navigator.of(context).pop(); // Close the dialog
                 Navigator.of(context).pop(); // Go back to the previous screen
               },
-              child: Text('OK'),
+              child: Text(
+                'OK',
+                style: TextStyle(color: AppColors.backgroundColor),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => InterviewResultScreen(
+                      userResponses: userResponses,
+                      correctCount: correctAnswersCount,
+                      totalCount: questions.length,
+                    ),
+                  ),
+                );
+              },
+              child: const Text(
+                'Show Details',
+                style: TextStyle(color: AppColors.backgroundColor),
+              ),
             ),
           ],
         );
