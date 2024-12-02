@@ -1,0 +1,48 @@
+// Apply plugins  
+plugins {  
+    id "com.android.application"  
+    id 'com.google.gms.google-services' // Firebase support  
+    id "kotlin-android"  // Apply Kotlin support  
+    id "dev.flutter.flutter-gradle-plugin" // Flutter Gradle Plugin  
+}  
+
+android {  
+    // Application namespace (should match your package name)  
+    namespace = "com.example.digitalskill"  
+    
+    compileSdk = flutter.compileSdkVersion // Use Flutter's compile SDK version  
+    ndkVersion = flutter.ndkVersion // Ensure correct NDK version is set  
+
+    compileOptions {  
+        // Set Java compatibility  
+        sourceCompatibility = JavaVersion.VERSION_11   
+        targetCompatibility = JavaVersion.VERSION_11   
+    }  
+
+    kotlinOptions {  
+        // Set JVM target for Kotlin to 11  
+        jvmTarget = JavaVersion.VERSION_11   
+    }  
+
+    defaultConfig {  
+        applicationId = "com.example.digitalskill" // Your unique application ID  
+        minSdkVersion 23 // Maintain minimum SDK version for compatibility  
+        targetSdk = flutter.targetSdkVersion // Flutter's target SDK version  
+        versionCode 1  
+        versionName "1.0"   
+    }  
+
+    buildTypes {  
+        release {  
+            // Change this for production, setting signing configs  
+            signingConfig = signingConfigs.debug   
+        }  
+        debug {  
+            // Optional: Configure debug-specific settings if necessary  
+        }  
+    }  
+}  
+
+flutter {  
+    source = "../.." // Ensure the Flutter source path is correct  
+}  
